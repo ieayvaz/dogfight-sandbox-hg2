@@ -33,6 +33,8 @@ class MissileLauncherS400(LandVehicle):
 		self.camera_tactical_distance = 100
 		self.camera_tactical_min_altitude = 1
 
+		self.radars = []
+
 
 	def destroy(self):
 
@@ -63,6 +65,9 @@ class MissileLauncherS400(LandVehicle):
 		md = self.get_device("MissilesDevice")
 		if md is not None:
 			md.rearm()
+
+	def set_radars(self, radars):
+		self.radars = radars
 
 	#=========================== Physics
 

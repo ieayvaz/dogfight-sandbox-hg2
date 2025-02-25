@@ -12,12 +12,14 @@ from MachineDevice import *
 
 class Mission:
 
-	def __init__(self, title, ennemies:list, allies:list, num_carriers_ennemies:int, num_carriers_allies:int, setup_players, end_test, end_phase_update):
+	def __init__(self, title, ennemies:list, allies:list, num_carriers_ennemies:int, num_carriers_allies:int, num_allies_radars, num_ennemies_radars, setup_players, end_test, end_phase_update):
 		self.title = title
 		self.ennemies = ennemies
 		self.allies = allies
 		self.allies_carriers = num_carriers_allies
 		self.ennemies_carriers = num_carriers_ennemies
+		self.allies_radars = num_allies_radars
+		self.ennemies_radars = num_ennemies_radars
 		self.setup_players_f = setup_players
 		self.end_test_f = end_test
 		self.update_end_phase_f = end_phase_update
@@ -191,6 +193,7 @@ class Missions:
 		mission = cls.get_current_mission()
 		main.create_aircraft_carriers(mission.allies_carriers, mission.ennemies_carriers)
 		main.create_players(mission.allies, mission.ennemies)
+		main.create_radars(mission.allies_radars, mission.ennemies_radars)
 
 		cls.setup_carriers(main.aircraft_carrier_allies, hg.Vec3(0, 0, 0), hg.Vec3(500, 0, 100), 0)
 
@@ -297,6 +300,7 @@ class Missions:
 	def mission_setup_players(cls, main):
 		mission = cls.get_current_mission()
 		main.create_aircraft_carriers(mission.allies_carriers, mission.ennemies_carriers)
+		main.create_radars(mission.allies_radars, mission.ennemies_radars)
 		main.create_players(mission.allies, mission.ennemies)
 
 		cls.setup_carriers(main.aircraft_carrier_allies, hg.Vec3(0, 0, 0), hg.Vec3(500, 0, 100), 0)
@@ -592,7 +596,7 @@ class Missions:
 		#cls.missions.append(Mission("Training with F14", [], ["F14"], 0, 1, Missions.mission_setup_training, Missions.mission_training_end_test, Missions.mission_training_end_phase_update))
 		#cls.missions.append(Mission("Training with F14 2", [], ["F14_2"], 0, 1, Missions.mission_setup_training, Missions.mission_training_end_test, Missions.mission_training_end_phase_update))
 
-		cls.missions.append(Mission("One on one", ["Rafale"], ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
+		cls.missions.append(Mission("One on one", ["Rafale"], ["Eurofighter"], 1, 1, 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
 		cls.missions.append(Mission("Fight against 2 ennemies", ["Rafale"] * 2, ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
 		cls.missions.append(Mission("Fight against 3 ennemies", ["Rafale"] * 1 + ["F16"] * 2, ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
 		cls.missions.append(Mission("Fight against 4 ennemies", ["Rafale"] * 2 + ["F16"] * 2, ["TFX", "Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))

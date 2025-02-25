@@ -17,6 +17,7 @@ from missile_Mica import *
 from missile_aim_sl import *
 from missile_karaoke import *
 from missile_S400 import *
+from radar_type1 import *
 from addon_cft import *
 from SmartCamera import *
 import json
@@ -488,6 +489,26 @@ class Main:
         cls.scene_cockpit_aircrafts = []
 
     @classmethod
+    def create_radar(cls,model_name, name, start_position, nationality):
+        if model_name == RADARTYPE1.model_name:
+            radar = RADARTYPE1(name, cls.scene, cls.scene_physics, cls.pl_resources, nationality, start_position, 90)
+        
+        if radar is not None:
+            cls.destroyables_list.append(radar)
+            radar.add_to_update_list()
+            if nationality == 1:
+                cls.radars_allies.append(radar)
+            elif nationality == 2:
+                cls.radars_ennemies.append(radar)
+        
+        return radar
+    
+    @classmethod
+    def create_radars(cls, num_allies, num_ennemies):
+        cls.create_radar("RADARTYPE1", "AllyRadar1", hg.Vec3(100,50,100),1)
+        cls.create_radar("RADARTYPE1", "EnnemyRadar1", hg.Vec3(-3000,50,-3000),2)
+
+    @classmethod
     def create_aircraft_carrier(cls, name, nationality):
         carrier = Carrier(name, cls.scene, cls.scene_physics, cls.pl_resources, nationality)
         if carrier is not None:
@@ -652,16 +673,21 @@ class Main:
         cls.scene.Update(0)
 
         lt_allies = []
+        radar_allies = []
         for carrier in cls.aircraft_carrier_allies:
             lt_allies += carrier.landing_targets
+            radar_allies.append(carrier.radar_dev)
         lt_ennemies = []
+        radar_ennemies = []
         for carrier in cls.aircraft_carrier_ennemies:
             lt_ennemies += carrier.landing_targets
+            radar_ennemies.append(carrier.radar_dev)
 
         for i, pl in enumerate(cls.players_allies):
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             pl.set_landing_targets(lt_allies)
+            pl.set_radars(radar_allies)
             td.targets = cls.players_ennemies
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
@@ -670,6 +696,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             td.targets = cls.players_ennemies
+            pl.set_radars(radar_allies)
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
 
@@ -677,6 +704,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_allies)
             pl.set_landing_targets(lt_ennemies)
+            pl.set_radars(radar_ennemies)
             td.targets = cls.players_allies
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
@@ -685,6 +713,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_allies)
             td.targets = cls.players_allies
+            pl.set_radars(radar_ennemies)
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
 

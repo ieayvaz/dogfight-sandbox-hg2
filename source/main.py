@@ -12,6 +12,7 @@ from os import path, getcwd
 import json
 from math import log, floor
 import harfang.bin
+import atexit
 
 # --------------- Inline arguments handler
 
@@ -144,6 +145,19 @@ hg.ResetClock()
 # ------------------- Setup state:
 Main.current_state = states.init_menu_state()
 
+# ------------------- Exit handling
+def exit():
+    if Main.flag_network_mode:
+        netws.stop_server()
+
+    hg.StopAllSources()
+    hg.AudioShutdown()
+
+    hg.RenderShutdown()
+    hg.DestroyWindow(Main.win)
+
+atexit.register(exit)
+
 # ------------------- Main loop:
 
 while not Main.flag_exit:
@@ -159,12 +173,4 @@ while not Main.flag_exit:
 
 
 # ----------------- Exit:
-
-if Main.flag_network_mode:
-    netws.stop_server()
-
-hg.StopAllSources()
-hg.AudioShutdown()
-
-hg.RenderShutdown()
-hg.DestroyWindow(Main.win)
+exit()

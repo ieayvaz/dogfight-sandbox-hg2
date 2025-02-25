@@ -311,6 +311,7 @@ class Destroyable_Machine(AnimatedModel):
     TYPE_MISSILE = 3
     TYPE_LANDVEHICLE = 4
     TYPE_MISSILE_LAUNCHER = 5
+    TYPE_RADAR = 6
 
 
     flag_activate_particles = True
@@ -318,7 +319,7 @@ class Destroyable_Machine(AnimatedModel):
     playfield_max_distance = 50000
     playfield_safe_distance = 40000
 
-    types_labels = ["GROUND", "SHIP", "AICRAFT", "MISSILE", "LANDVEHICLE", "MISSILE_LAUNCHER"]
+    types_labels = ["GROUND", "SHIP", "AICRAFT", "MISSILE", "LANDVEHICLE", "MISSILE_LAUNCHER", "RADAR"]
     update_list = []
     machines_list = []
     machines_items = {}
@@ -1410,6 +1411,7 @@ class Aircraft(Destroyable_Machine):
         self.angular_levels_dest = hg.Vec3(0, 0, 0)
 
         self.landing_targets = []
+        self.radars = []
 
         # Attitudes calculation:
         self.pitch_attitude = 0
@@ -1824,6 +1826,9 @@ class Aircraft(Destroyable_Machine):
                             self.t_going_to_takeoff_position = 0
                             self.rearm()
             self.flag_landed = True
+
+    def set_radars(self, radars):
+        self.radars = radars
 
     def set_landing_targets(self, targets):
         self.landing_targets = targets
@@ -2402,11 +2407,12 @@ class Carrier(Destroyable_Machine):
     def update_kinetics(self, dts):
         rot = self.radar.GetTransform().GetRot()
         rot.y += radians(45 * dts)
-        self.radar.GetTransform().SetRot(rot)
+        rot.y = rot.y % 2*pi
 
     def get_aircraft_start_point(self, point_id):
         mat = self.aircraft_start_points[point_id].GetTransform().GetWorld()
         return hg.GetT(mat), hg.GetR(mat)
+    
 
 # =====================================================================================================
 #                                   LandVehicle
@@ -2437,3 +2443,102 @@ class LandVehicle(Destroyable_Machine):
 
     def update_kinetics(self, dts):
         Destroyable_Machine.update_kinetics(self, dts)
+
+# ==============================================
+#       Radar
+# ==============================================
+class Radar(Destroyable_Machine):
+    def __init__(self, name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, instance_scene_name, nationality,
+                  position: hg.Vec3, heading: float, max_range: float, azimuth_fov: float, elevation_fov: float, max_track: int):
+        super().__init__(self, name, "Basic_Radar", scene, scene_physics, pipeline_ressource, instance_scene_name, Destroyable_Machine.TYPE_RADAR, nationality)
+        self.position = position
+        self.heading = heading  # Heading in degrees
+        self.max_range = max_range  # Max detection distance (includes half-circle)
+        self.circle_radius = max_range / 5  # Half-circle radius
+        self.cone_range = max_range - self.circle_radius  # Cone range
+        self.azimuth_fov = azimuth_fov  # Half of total horizontal FOV
+        self.elevation_fov = elevation_fov  # Half of total vertical FOV
+        self.max_track = max_track
+
+    def change_heading(self, heading):
+        self.heading = heading
+
+    def compute_azimuth_elevation(self, target_pos: hg.Vec3):
+        """Calculates azimuth and elevation angles of a target from the radar."""
+        direction = (target_pos - self.position).Normalized()
+
+        azimuth_angle = math.degrees(math.atan2(direction.x, direction.z)) % 360
+        radar_angle = self.heading % 360
+        azimuth_diff = (azimuth_angle - radar_angle + 180) % 360 - 180
+
+        elevation_angle = math.degrees(math.asin(direction.y))  # Vertical angle
+        
+        return azimuth_diff, elevation_angle
+
+    def is_within_radar(self, target_pos: hg.Vec3):
+        """Checks if an aircraft is detected and returns detection type ('cone' or 'circle')."""
+        distance = hg.Len(target_pos - self.position)
+        if distance > self.max_range:
+            return None  # Not detected
+        
+        azimuth_diff, elevation_angle = self.compute_azimuth_elevation(target_pos)
+
+        # --- CONE CHECK ---
+        if distance <= self.cone_range:
+            if abs(azimuth_diff) > self.azimuth_fov or abs(elevation_angle) > self.elevation_fov:
+                return None  # Outside the cone
+            return True
+
+        # --- HALF-CIRCLE AT END OF CONE ---
+        cone_end_center = self.position + hg.Vec3(
+            math.sin(math.radians(self.heading)) * self.cone_range, 
+            0, 
+            math.cos(math.radians(self.heading)) * self.cone_range
+        )
+        if hg.Len(target_pos - cone_end_center) <= self.circle_radius:
+            return True  # Detected in the half-circle
+
+        return False  # Not detected
+
+    def scan(self, aircraft_list):
+        """Scans for aircraft and returns tracking data for detected ones."""
+        detected_targets = []
+        track_id = 0
+
+        for aircraft in aircraft_list:
+            #Check if track limit exceeds
+            if len(detected_targets) >= self.max_track:
+                break
+            aircraft_position = aircraft.get_position()
+            detection_type = self.is_within_radar(aircraft_position)
+            if not detection_type:
+                continue  # Skip undetected aircraft
+
+            azimuth, elevation = self.compute_azimuth_elevation(aircraft_position)
+
+            # Compute aspect angle (angle between radar heading and target velocity direction)
+            velocity_dir = aircraft.v_move.Normalized()
+            velocity_heading = math.degrees(math.atan2(velocity_dir.x, velocity_dir.z)) % 360
+            aspect_angle = (velocity_heading - self.heading + 180) % 360 - 180
+
+            # Compute angular velocities (rate of change of azimuth/elevation)
+            azimuth_angular_velocity = math.degrees(math.atan2(aircraft.velocity.x, aircraft.velocity.z)) % 360
+            elevation_angular_velocity = math.degrees(math.asin(aircraft.velocity.y / hg.Len(aircraft.velocity))) if hg.Len(aircraft.velocity) > 0 else 0
+
+            detected_targets.append({
+                "track_id": track_id,
+                "target_location": aircraft_position,
+                "target_velocity": aircraft.v_move,
+                "target_acceleration": aircraft.get_linear_acceleration(),
+                "target_azimuth": azimuth,
+                "target_elevation": elevation,
+                "target_aspect_angle": aspect_angle,
+                "target_azimuth_angular_velocity": azimuth_angular_velocity,
+                "target_elevation_angular_velocity": elevation_angular_velocity,
+            })
+            track_id += 1
+
+        return detected_targets
+    
+    def update_kinetics(self, dts):
+        self.change_heading((self.heading+dts*180) % 360)

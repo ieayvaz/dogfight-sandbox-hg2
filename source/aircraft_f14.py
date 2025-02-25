@@ -56,8 +56,8 @@ class F14(Aircraft, F14_Parameters):
     def init(cls, scene):
         print("F14 class init")
 
-    def __init__(self, name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, nationality, start_pos, start_rot):
-        Aircraft.__init__(self, name, F14_Parameters.model_name, scene, scene_physics, pipeline_ressource, F14_Parameters.instance_scene_name, nationality, start_pos, start_rot)
+    def __init__(self, name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, nationality, start_pos, heading):
+        Aircraft.__init__(self, name, F14_Parameters.model_name, scene, scene_physics, pipeline_ressource, F14_Parameters.instance_scene_name, nationality, start_pos, heading)
         F14_Parameters.__init__(self)
         self.define_mobile_parts(self.mobile_parts_definitions)
         self.add_device(Gear("Gear", self)) #, scene, self.get_animation("gear_open"), self.get_animation("gear_close")))

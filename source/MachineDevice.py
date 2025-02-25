@@ -1,11 +1,13 @@
 # Copyright (C) 2018-2021 Eric Kernin, NWNC HARFANG.
 
+import math
 import harfang as hg
 import json
 from math import radians, degrees, pi, sqrt, exp, floor, acos, asin, sin, cos
 from random import uniform
 from Particles import *
 import data_converter as dc
+from radar import is_within_radar
 
 # =====================================================================================================
 #                                  Landing
@@ -197,6 +199,7 @@ class TargettingDevice(MachineDevice):
         self.destroyable_targets = []
         self.flag_front_lock_cone = True
         self.front_lock_angle = 15
+        self.ind = 0
 
     def set_target_lock_range(self, dmin, dmax):
         self.target_lock_range.x, self.target_lock_range.y = dmin, dmax
@@ -287,6 +290,7 @@ class TargettingDevice(MachineDevice):
             self.target_id = 0
 
     def update_target_lock(self, dts):
+        self.ind += 1
         if self.target_id > 0:
             target = self.targets[self.target_id - 1]
             if target.wreck or not target.activated:
@@ -309,7 +313,16 @@ class TargettingDevice(MachineDevice):
                 self.target_angle = 0
                 front_lock_angle = 180
 
-            if self.target_angle < front_lock_angle and self.target_lock_range.x < self.target_distance < self.target_lock_range.y:
+            lock_condition = False
+            for radar in self.machine.radars:
+                with open("radar_log.txt","a+") as f:
+                    f.write(f"{self.machine.nationality},{t_pos.x},{t_pos.z},{radar.heading},{radar.position.x},{radar.position.z},{radar.range},{radar.fov},{is_within_radar(t_pos,radar.position,radar.heading,radar.range,radar.fov)}\n")
+                if radar.is_within_radar(t_pos,radar.position):
+                    lock_condition = True
+                    break
+
+            #lock_condition = self.target_angle < front_lock_angle and self.target_lock_range.x < self.target_distance < self.target_lock_range.y
+            if lock_condition:
                 t = (self.target_distance - self.target_lock_range.x) / (
                         self.target_lock_range.y - self.target_lock_range.x)
                 delay = self.target_lock_delay.x + t * (self.target_lock_delay.y - self.target_lock_delay.x)
