@@ -1324,6 +1324,7 @@ class Aircraft(Destroyable_Machine):
         self.add_device(AircraftAutopilotControlDevice("AutopilotControlDevice", self, Aircraft.autopilot_inputs_mapping_file))
         self.add_device(AircraftIAControlDevice("IAControlDevice", self, Aircraft.ia_inputs_mapping_file))
         self.add_device(TargettingDevice("TargettingDevice", self, True))
+        self.add_device(RWRDevice("RWRDevice",self))
         self.setup_collisions()
 
         # Aircraft vars:
@@ -2516,13 +2517,13 @@ class Radar(Destroyable_Machine):
             azimuth, elevation = self.compute_azimuth_elevation(aircraft_position)
 
             # Compute aspect angle (angle between radar heading and target velocity direction)
-            velocity_dir = aircraft.v_move.Normalized()
+            velocity_dir = hg.Normalize(aircraft.v_move)
             velocity_heading = math.degrees(math.atan2(velocity_dir.x, velocity_dir.z)) % 360
             aspect_angle = (velocity_heading - self.heading + 180) % 360 - 180
 
             # Compute angular velocities (rate of change of azimuth/elevation)
-            azimuth_angular_velocity = math.degrees(math.atan2(aircraft.velocity.x, aircraft.velocity.z)) % 360
-            elevation_angular_velocity = math.degrees(math.asin(aircraft.velocity.y / hg.Len(aircraft.velocity))) if hg.Len(aircraft.velocity) > 0 else 0
+            azimuth_angular_velocity = math.degrees(math.atan2(aircraft.v_move.x, aircraft.v_move.z)) % 360
+            elevation_angular_velocity = math.degrees(math.asin(aircraft.v_move.y / hg.Len(aircraft.v_move))) if hg.Len(aircraft.v_move) > 0 else 0
 
             detected_targets.append({
                 "track_id": track_id,

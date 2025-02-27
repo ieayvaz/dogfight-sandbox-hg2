@@ -510,7 +510,7 @@ class Main:
     @classmethod
     def create_radars(cls, num_allies, num_ennemies):
         cls.create_radar("RADARTYPE1", "AllyRadar1", hg.Vec3(100,50,100),1)
-        cls.create_radar("RADARTYPE1", "EnnemyRadar1", hg.Vec3(-3000,50,-3000),2)
+        cls.create_radar("RADARTYPE1", "EnnemyRadar1", hg.Vec3(100,50,100),2)
 
     @classmethod
     def create_aircraft_carrier(cls, name, nationality):
@@ -685,35 +685,43 @@ class Main:
 
         for i, pl in enumerate(cls.players_allies):
             td = pl.get_device("TargettingDevice")
+            rwr = pl.get_device("RWRDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             pl.set_landing_targets(lt_allies)
             pl.set_radars(cls.radars_allies)
             td.targets = cls.players_ennemies
+            rwr.missiles = cls.missiles_ennemies
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
 
         for i, pl in enumerate(cls.missile_launchers_allies):
             td = pl.get_device("TargettingDevice")
+            rwr = pl.get_device("RWRDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             td.targets = cls.players_ennemies
             pl.set_radars(cls.radars_allies)
+            rwr.missiles = cls.missiles_ennemies
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
 
         for i, pl in enumerate(cls.players_ennemies):
             td = pl.get_device("TargettingDevice")
+            rwr = pl.get_device("RWRDevice")
             td.set_destroyable_targets(cls.players_allies)
             pl.set_landing_targets(lt_ennemies)
             pl.set_radars(cls.radars_ennemies)
             td.targets = cls.players_allies
+            rwr.missiles = cls.missiles_allies
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
 
         for i, pl in enumerate(cls.missile_launchers_ennemies):
             td = pl.get_device("TargettingDevice")
+            rwr = pl.get_device("RWRDevice")
             td.set_destroyable_targets(cls.players_allies)
             td.targets = cls.players_allies
             pl.set_radars(cls.radars_ennemies)
+            rwr.missiles = cls.missiles_allies
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
 

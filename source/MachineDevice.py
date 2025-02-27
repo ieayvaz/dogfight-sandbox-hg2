@@ -177,6 +177,37 @@ class Gear(MachineDevice):
         self.flag_gear_moving = True
 
 # ==============================================
+#       RWR Device
+#       Detects missile within rwr radius
+# ==============================================
+class RWRDevice(MachineDevice):
+    def __init__(self, name, machine, start_state=True, range: float = 300):
+        super().__init__(name,machine,start_state)
+        self.range = range
+        self.missiles = []
+
+    def detect_missiles(self):
+        self.detected_azimuths = []
+        pos = self.machine.get_position()
+
+        for missile in self.missiles:
+            if missile.activated == False:
+                continue
+            missile_pos = missile.get_position()
+            distance_v = pos - missile_pos
+            distance = hg.Len(distance_v)
+
+            if distance <= self.range:
+                azimuth = math.degrees(math.atan2(distance_v.x, distance_v.z)) % 360
+                self.detected_azimuths.append(azimuth)
+
+        return self.detected_azimuths
+    
+    def update(self,dts):
+        self.detected_azimuth = self.detect_missiles()
+
+
+# ==============================================
 #       Targetting device
 #       Targets and hunter machine are Destroyable_Machine classes only
 # ==============================================
