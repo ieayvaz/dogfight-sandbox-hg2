@@ -2455,8 +2455,6 @@ class Radar(Destroyable_Machine):
         self.position = position
         self.heading = heading  # Heading in degrees
         self.max_range = max_range  # Max detection distance (includes half-circle)
-        self.circle_radius = max_range / 10  # Half-circle radius
-        self.cone_range = max_range - self.circle_radius  # Cone range
         self.azimuth_fov = azimuth_fov  # Half of total horizontal FOV
         self.elevation_fov = elevation_fov  # Half of total vertical FOV
         self.max_track = max_track
@@ -2479,24 +2477,14 @@ class Radar(Destroyable_Machine):
         return azimuth_diff, elevation_angle
 
     def is_within_radar(self, target_pos: hg.Vec3):
-        """Checks if an aircraft is detected and returns detection type ('cone' or 'circle')."""
+        """Checks if an aircraft is in the area radar scans"""
         distance = hg.Len(target_pos - self.position)
         
         azimuth_diff, elevation_angle = self.compute_azimuth_elevation(target_pos)
 
-        # --- CONE CHECK ---
-        if distance <= self.cone_range:
+        if distance <= self.max_range:
             if abs(azimuth_diff) <= self.azimuth_fov or abs(elevation_angle) <= self.elevation_fov:
-                return True  # Inside the cone
-
-        # --- HALF-CIRCLE AT END OF CONE ---
-        cone_end_center = self.position + hg.Vec3(
-            math.sin(math.radians(self.heading)) * self.cone_range, 
-            0, 
-            math.cos(math.radians(self.heading)) * self.cone_range
-        )
-        if hg.Len(target_pos - cone_end_center) <= self.circle_radius:
-            return True  # Detected in the half-circle
+                return True  # Inside the area
 
         return False  # Not detected
 
