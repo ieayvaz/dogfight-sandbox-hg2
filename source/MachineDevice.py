@@ -8,6 +8,7 @@ from random import uniform
 from Particles import *
 import data_converter as dc
 from radar import is_within_radar
+from utils import Vec3_str
 
 # =====================================================================================================
 #                                  Landing
@@ -199,7 +200,7 @@ class TargettingDevice(MachineDevice):
         self.destroyable_targets = []
         self.flag_front_lock_cone = True
         self.front_lock_angle = 15
-        self.ind = 0
+        self.target_tracks = []
 
     def set_target_lock_range(self, dmin, dmax):
         self.target_lock_range.x, self.target_lock_range.y = dmin, dmax
@@ -290,7 +291,6 @@ class TargettingDevice(MachineDevice):
             self.target_id = 0
 
     def update_target_lock(self, dts):
-        self.ind += 1
         if self.target_id > 0:
             target = self.targets[self.target_id - 1]
             if target.wreck or not target.activated:
@@ -315,9 +315,7 @@ class TargettingDevice(MachineDevice):
 
             lock_condition = False
             for radar in self.machine.radars:
-                with open("radar_log.txt","a+") as f:
-                    f.write(f"{self.machine.nationality},{t_pos.x},{t_pos.z},{radar.heading},{radar.position.x},{radar.position.z},{radar.range},{radar.fov},{is_within_radar(t_pos,radar.position,radar.heading,radar.range,radar.fov)}\n")
-                if radar.is_within_radar(t_pos,radar.position):
+                if radar.is_within_radar(t_pos):
                     lock_condition = True
                     break
 

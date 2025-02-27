@@ -12,7 +12,7 @@ from MachineDevice import *
 
 class Mission:
 
-	def __init__(self, title, ennemies:list, allies:list, num_carriers_ennemies:int, num_carriers_allies:int, num_allies_radars, num_ennemies_radars, setup_players, end_test, end_phase_update):
+	def __init__(self, title, ennemies:list, allies:list, num_carriers_ennemies:int, num_carriers_allies:int, setup_players, end_test, end_phase_update,num_allies_radars:int = 0, num_ennemies_radars:int = 0):
 		self.title = title
 		self.ennemies = ennemies
 		self.allies = allies
@@ -596,7 +596,7 @@ class Missions:
 		#cls.missions.append(Mission("Training with F14", [], ["F14"], 0, 1, Missions.mission_setup_training, Missions.mission_training_end_test, Missions.mission_training_end_phase_update))
 		#cls.missions.append(Mission("Training with F14 2", [], ["F14_2"], 0, 1, Missions.mission_setup_training, Missions.mission_training_end_test, Missions.mission_training_end_phase_update))
 
-		cls.missions.append(Mission("One on one", ["Rafale"], ["Eurofighter"], 1, 1, 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
+		cls.missions.append(Mission("One on one", ["Rafale"], ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update,1,1))
 		cls.missions.append(Mission("Fight against 2 ennemies", ["Rafale"] * 2, ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
 		cls.missions.append(Mission("Fight against 3 ennemies", ["Rafale"] * 1 + ["F16"] * 2, ["Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))
 		cls.missions.append(Mission("Fight against 4 ennemies", ["Rafale"] * 2 + ["F16"] * 2, ["TFX", "Eurofighter"], 1, 1, Missions.mission_setup_players, Missions.mission_one_against_x_end_test, Missions.mission_one_against_x_end_phase_update))

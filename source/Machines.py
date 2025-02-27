@@ -2448,24 +2448,26 @@ class LandVehicle(Destroyable_Machine):
 #       Radar
 # ==============================================
 class Radar(Destroyable_Machine):
-    def __init__(self, name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, instance_scene_name, nationality,
-                  position: hg.Vec3, heading: float, max_range: float, azimuth_fov: float, elevation_fov: float, max_track: int):
-        super().__init__(self, name, "Basic_Radar", scene, scene_physics, pipeline_ressource, instance_scene_name, Destroyable_Machine.TYPE_RADAR, nationality)
+    def __init__(self, name, model_name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, instance_scene_name, nationality,
+                  position: hg.Vec3, heading: float, max_range: float, azimuth_fov: float, elevation_fov: float, max_track: int, scan_speed:float):
+        super().__init__(name, "Basic_Radar", scene, scene_physics, pipeline_ressource, instance_scene_name, Destroyable_Machine.TYPE_RADAR, nationality)
         self.position = position
         self.heading = heading  # Heading in degrees
         self.max_range = max_range  # Max detection distance (includes half-circle)
-        self.circle_radius = max_range / 5  # Half-circle radius
+        self.circle_radius = max_range / 10  # Half-circle radius
         self.cone_range = max_range - self.circle_radius  # Cone range
         self.azimuth_fov = azimuth_fov  # Half of total horizontal FOV
         self.elevation_fov = elevation_fov  # Half of total vertical FOV
         self.max_track = max_track
+        self.model_name = model_name
+        self.scan_speed = scan_speed
 
     def change_heading(self, heading):
         self.heading = heading
 
     def compute_azimuth_elevation(self, target_pos: hg.Vec3):
         """Calculates azimuth and elevation angles of a target from the radar."""
-        direction = (target_pos - self.position).Normalized()
+        direction = hg.Normalize(target_pos - self.position)
 
         azimuth_angle = math.degrees(math.atan2(direction.x, direction.z)) % 360
         radar_angle = self.heading % 360
@@ -2478,16 +2480,13 @@ class Radar(Destroyable_Machine):
     def is_within_radar(self, target_pos: hg.Vec3):
         """Checks if an aircraft is detected and returns detection type ('cone' or 'circle')."""
         distance = hg.Len(target_pos - self.position)
-        if distance > self.max_range:
-            return None  # Not detected
         
         azimuth_diff, elevation_angle = self.compute_azimuth_elevation(target_pos)
 
         # --- CONE CHECK ---
         if distance <= self.cone_range:
-            if abs(azimuth_diff) > self.azimuth_fov or abs(elevation_angle) > self.elevation_fov:
-                return None  # Outside the cone
-            return True
+            if abs(azimuth_diff) <= self.azimuth_fov or abs(elevation_angle) <= self.elevation_fov:
+                return True  # Inside the cone
 
         # --- HALF-CIRCLE AT END OF CONE ---
         cone_end_center = self.position + hg.Vec3(
@@ -2541,4 +2540,4 @@ class Radar(Destroyable_Machine):
         return detected_targets
     
     def update_kinetics(self, dts):
-        self.change_heading((self.heading+dts*180) % 360)
+        self.change_heading((self.heading+dts*self.scan_speed) % 360)

@@ -168,6 +168,8 @@ class Main:
     ennemyaircraft_nodes = None
     players_allies = []
     players_ennemies = []
+    radars_allies = []
+    radars_ennemies = []
     players_sfx = []
     missiles_allies = []
     missiles_ennemies = []
@@ -480,6 +482,8 @@ class Main:
         cls.missiles_ennemies = []
         cls.players_ennemies = []
         cls.players_allies = []
+        cls.radars_allies = []
+        cls.radars_ennemies = []
         cls.destroyables_list = []
         cls.aircraft_carrier_allies = []
         cls.aircraft_carrier_ennemies = []
@@ -673,21 +677,17 @@ class Main:
         cls.scene.Update(0)
 
         lt_allies = []
-        radar_allies = []
         for carrier in cls.aircraft_carrier_allies:
             lt_allies += carrier.landing_targets
-            radar_allies.append(carrier.radar_dev)
         lt_ennemies = []
-        radar_ennemies = []
         for carrier in cls.aircraft_carrier_ennemies:
             lt_ennemies += carrier.landing_targets
-            radar_ennemies.append(carrier.radar_dev)
 
         for i, pl in enumerate(cls.players_allies):
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             pl.set_landing_targets(lt_allies)
-            pl.set_radars(radar_allies)
+            pl.set_radars(cls.radars_allies)
             td.targets = cls.players_ennemies
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
@@ -696,7 +696,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_ennemies)
             td.targets = cls.players_ennemies
-            pl.set_radars(radar_allies)
+            pl.set_radars(cls.radars_allies)
             if len(cls.players_ennemies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_ennemies)))
 
@@ -704,7 +704,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_allies)
             pl.set_landing_targets(lt_ennemies)
-            pl.set_radars(radar_ennemies)
+            pl.set_radars(cls.radars_ennemies)
             td.targets = cls.players_allies
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
@@ -713,7 +713,7 @@ class Main:
             td = pl.get_device("TargettingDevice")
             td.set_destroyable_targets(cls.players_allies)
             td.targets = cls.players_allies
-            pl.set_radars(radar_ennemies)
+            pl.set_radars(cls.radars_ennemies)
             if len(cls.players_allies) > 0:
                 td.set_target_id(int(uniform(0, 1000) % len(cls.players_allies)))
 
