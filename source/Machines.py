@@ -2483,7 +2483,7 @@ class Radar(Destroyable_Machine):
         azimuth_diff, elevation_angle = self.compute_azimuth_elevation(target_pos)
 
         if distance <= self.max_range:
-            if abs(azimuth_diff) <= self.azimuth_fov or abs(elevation_angle) <= self.elevation_fov:
+            if abs(azimuth_diff) <= self.azimuth_fov and abs(elevation_angle) <= self.elevation_fov:
                 return True  # Inside the area
 
         return False  # Not detected
