@@ -9,7 +9,9 @@ class RADARTYPE1(Radar):
         parameters = {
             "max_range" : 2000,
             "azimuth_fov" : 360,
+            "azimuth_fov_neg" : -360,
             "elevation_fov" : 360,
+            "elevation_fov_neg" : -360,
             "max_track" : 5,
             "scan_speed" : 360,
         }

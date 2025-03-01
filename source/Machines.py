@@ -2450,13 +2450,15 @@ class LandVehicle(Destroyable_Machine):
 # ==============================================
 class Radar(Destroyable_Machine):
     def __init__(self, name, model_name, scene, scene_physics, pipeline_ressource: hg.PipelineResources, instance_scene_name, nationality,
-                  position: hg.Vec3, heading: float, max_range: float, azimuth_fov: float, elevation_fov: float, max_track: int, scan_speed:float):
+                  position: hg.Vec3, heading: float, max_range: float, azimuth_fov: float, azimuth_fov_neg: float, elevation_fov: float, elevation_fov_neg: float, max_track: int, scan_speed:float):
         super().__init__(name, "Basic_Radar", scene, scene_physics, pipeline_ressource, instance_scene_name, Destroyable_Machine.TYPE_RADAR, nationality)
         self.position = position
         self.heading = heading  # Heading in degrees
         self.max_range = max_range  # Max detection distance (includes half-circle)
         self.azimuth_fov = azimuth_fov  # Half of total horizontal FOV
+        self.azimuth_fov_neg = azimuth_fov_neg
         self.elevation_fov = elevation_fov  # Half of total vertical FOV
+        self.elevation_fov_neg = elevation_fov_neg
         self.max_track = max_track
         self.model_name = model_name
         self.scan_speed = scan_speed
@@ -2483,7 +2485,7 @@ class Radar(Destroyable_Machine):
         azimuth_diff, elevation_angle = self.compute_azimuth_elevation(target_pos)
 
         if distance <= self.max_range:
-            if abs(azimuth_diff) <= self.azimuth_fov and abs(elevation_angle) <= self.elevation_fov:
+            if self.azimuth_fov_neg <= azimuth_diff <= self.azimuth_fov and self.elevation_fov_neg <= elevation_angle <= self.elevation_fov:
                 return True  # Inside the area
 
         return False  # Not detected
