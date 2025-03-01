@@ -510,7 +510,7 @@ class Main:
     @classmethod
     def create_radars(cls, num_allies, num_ennemies):
         cls.create_radar("RADARTYPE1", "AllyRadar1", hg.Vec3(100,50,100),1)
-        cls.create_radar("RADARTYPE1", "EnnemyRadar1", hg.Vec3(100,50,100),2)
+        cls.create_radar("RADARTYPE1", "EnnemyRadar1", hg.Vec3(-5000,50,-2000),2)
 
     @classmethod
     def create_aircraft_carrier(cls, name, nationality):
