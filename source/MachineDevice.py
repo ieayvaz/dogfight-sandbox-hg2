@@ -199,7 +199,8 @@ class RWRDevice(MachineDevice):
 
             if distance <= self.range:
                 azimuth = math.degrees(math.atan2(distance_v.x, distance_v.z)) % 360
-                self.detected_azimuths.append(azimuth)
+                self_heading =  self.machine.get_heading()
+                self.detected_azimuths.append(azimuth-self_heading)
 
         return self.detected_azimuths
     
